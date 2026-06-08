@@ -1,0 +1,5 @@
+# Development and testing tools — NOT included in the Docker production image
+pytest
+pytest-cov
+ruff
+httpx

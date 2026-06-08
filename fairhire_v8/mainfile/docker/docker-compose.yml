@@ -1,0 +1,92 @@
+# =============================================================================
+# FairHire Docker Compose
+#
+# ⚠️  BEFORE running "docker compose up":
+#   1. Replace YOUR_DOMAIN_HERE in docker/dashboard/nginx.conf with your actual domain
+#        sed -i 's/YOUR_DOMAIN_HERE/yourdomain.com/g' docker/dashboard/nginx.conf
+#   2. Obtain SSL cert:  sudo certbot certonly --standalone -d yourdomain.com -d www.yourdomain.com
+#   3. Copy .env.example to .env and fill in all values: cp docker/.env.example docker/.env
+#   4. Run pre-flight check: bash docker/preflight_check.sh
+#   5. Start: docker compose up -d
+#
+# Nginx validates SSL certificate paths at startup. If the cert is missing,
+# the dashboard container will crash immediately with "cannot load certificate".
+# =============================================================================
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    container_name: fairhire-backend
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRE_HOURS=${JWT_EXPIRE_HOURS:-24}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - APP_DOMAIN=${APP_DOMAIN}
+      - APP_VERSION=${APP_VERSION:-8.0.0}
+      - COOKIE_SECURE=${COOKIE_SECURE:-true}
+      - COOKIE_SAMESITE=${COOKIE_SAMESITE:-lax}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - fairhire-net
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/dashboard/Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-}
+    container_name: fairhire-dashboard
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - fairhire-net
+
+networks:
+  fairhire-net:
+    driver: bridge
