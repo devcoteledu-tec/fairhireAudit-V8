@@ -1,23 +1,19 @@
 import React from 'react'
-
 export function GaugeChart({ value, max = 100, label, size = 180 }) {
   const safeValue = Number.isFinite(Number(value)) ? Number(value) : 0
   const pct = Math.min(safeValue / max, 1)
   const r = 70, cx = 90, cy = 85
   const startAngle = Math.PI, endAngle = 0
   const sweep = pct * Math.PI
-   use safe value
+  // use safe value
   const color = safeValue >= 80 ? '#10b981' : safeValue >= 60 ? '#f59e0b' : '#e11d48'
-
   const x1 = cx + r * Math.cos(startAngle)
   const y1 = cy - r * Math.sin(startAngle)
   const x2 = cx + r * Math.cos(startAngle - sweep)
   const y2 = cy - r * Math.sin(startAngle - sweep)
   const largeArc = sweep > Math.PI ? 1 : 0
-
   const bgX2 = cx + r * Math.cos(endAngle)
   const bgY2 = cy - r * Math.sin(endAngle)
-
   return (
     <div className="gauge-container">
       <svg width={size} height={size * 0.6} viewBox="0 0 180 100">
@@ -33,7 +29,6 @@ export function GaugeChart({ value, max = 100, label, size = 180 }) {
     </div>
   )
 }
-
 export function MetricCard({ label, value, sub, color, badge }) {
   return (
     <div className="metric-card">
@@ -48,7 +43,6 @@ export function MetricCard({ label, value, sub, color, badge }) {
     </div>
   )
 }
-
 export function FlagFeed({ flags, title, icon = '🚩' }) {
   if (!flags || flags.length === 0) return null
   const getSeverity = (f) => {
@@ -79,16 +73,13 @@ export function FlagFeed({ flags, title, icon = '🚩' }) {
     </div>
   )
 }
-
 export function RegTag({ text }) {
   return <span className="reg-tag">⚖ {text}</span>
 }
-
 export function airBadge(air) {
   if (air === null || air === undefined || air === 0) return null
   return air >= 0.80 ? 'pass' : air >= 0.60 ? 'warn' : 'fail'
 }
-
 export function pct(n, d) {
   if (!d) return '0.0'
   return ((n / d) * 100).toFixed(1)
