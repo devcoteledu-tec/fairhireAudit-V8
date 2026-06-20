@@ -103,7 +103,7 @@ REQUIRED ENV VARS — add to your .env before any deployment
 #         users with a spurious HTTP 402 at the start of each new month.
 # ══════════════════════════════════════════════════════════════════════════════
 
-from __future__ import annotations
+
 
 import datetime
 import decimal
