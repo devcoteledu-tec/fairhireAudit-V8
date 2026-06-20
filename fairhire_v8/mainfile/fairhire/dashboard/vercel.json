@@ -1,18 +1,5 @@
 {
-  "_readme": [
-    "⚠️  REQUIRED STEP — replace REPLACE_WITH_REAL_RAILWAY_URL_BEFORE_DEPLOY with your actual Railway service URL before running 'vercel deploy'. The deploy will route all /api/* calls to a broken URL if you skip this.",
-    "Replace YOUR_RAILWAY_BACKEND_URL below with your actual Railway service URL.",
-    "Example: https://fairhire-backend.up.railway.app",
-    "Vercel does not support env vars in rewrite destinations, so this must be",
-    "a literal URL. Update it whenever your Railway service URL changes.",
-    "After editing, also set VITE_API_URL='' in Vercel environment variables",
-    "so the frontend routes all /api/ calls through this proxy."
-  ],
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://fairhire-api.up.railway.app/api/:path*"
-    },
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
