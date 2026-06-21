@@ -1,302 +1,812 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 /* ==========================================================================
-   PREMIUM LIGHT-MODE MINIMAL OVERRIDES (Injected safely into Head)
+   FAIRHIRE HOME — Editorial audit-report aesthetic
+   Fraunces (serif display) + Inter (UI) + JetBrains Mono (data/schema)
+   Signature element: live fairness Scorecard in the hero — a miniature
+   preview of the actual audit output, not a generic illustration.
    ========================================================================== */
 const AUDIT_OVERRIDE_ID = 'fairhire-light-minimal-theme'
 const AUDIT_TEMPLATE_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-  /* ── Structural Layout Core ── */
+  /* ══════════════════════════════════════════════════════════════════
+     TOKENS
+     ══════════════════════════════════════════════════════════════════ */
   .hp-wrapper {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    color: #1e293b;
+    --ink:        #0B1220;
+    --paper:      #F7F9FC;
+    --paper-2:    #FFFFFF;
+    --forest:     #2F6F4E;
+    --forest-d:   #20503A;
+    --forest-l:   #E8F2EC;
+    --clay:       #C2542F;
+    --clay-l:     #FBEAE2;
+    --slate:      #5B6472;
+    --slate-l:    #8A93A3;
+    --line:       #E3E8F0;
+    --line-soft:  #ECEFF4;
+
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
     -webkit-font-smoothing: antialiased;
-    background: #ffffff;
-    padding: 40px 24px;
+    background: var(--paper);
   }
 
-  .hp-container {
-    max-width: 1440px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 64px;
-  }
-
-  /* ── Kinetic Smooth Transitions ── */
   .hp-wrapper *, .hp-wrapper *::before, .hp-wrapper *::after {
     box-sizing: border-box;
-    transition: color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-            background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-            border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-            transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-            opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* ── SECTION A: TEMPLATE HERO STYLING ── */
-  .hp-template-hero {
+  .hp-serif {
+    font-family: 'Fraunces', serif;
+  }
+
+  .hp-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .hp-wrapper a { text-decoration: none; color: inherit; }
+  .hp-wrapper button { font-family: inherit; }
+  .hp-wrapper ul { list-style: none; }
+
+  /* focus visibility */
+  .hp-wrapper button:focus-visible,
+  .hp-wrapper a:focus-visible,
+  .hp-wrapper input:focus-visible {
+    outline: 2px solid var(--forest);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hp-wrapper * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     NAVBAR
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
-    background: #ffffff;
-    padding: 80px 24px 60px 24px;
-    position: relative;
+    justify-content: space-between;
+    padding: 18px 48px;
+    background: rgba(247, 249, 252, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
   }
 
-  .hp-badge-pill {
-    display: inline-flex;
+  .hp-nav-brand {
+    display: flex;
     align-items: center;
-    gap: 8px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    padding: 6px 16px;
-    border-radius: 100px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.8rem;
+    gap: 10px;
+    font-family: 'Fraunces', serif;
     font-weight: 600;
-    color: #64748b;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 24px;
+    font-size: 1.25rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
   }
 
-  .hp-hero-title-group h1 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 4.2rem;
-    font-weight: 800;
-    line-height: 1.1;
-    margin: 0 auto 24px auto;
-    color: #0f172a;
-    letter-spacing: -0.03em;
-    max-width: 900px;
-  }
-
-  .hp-hero-title-group h1 span {
-    color: #2563eb;
-  }
-
-  .hp-hero-description {
-    font-size: 1.2rem;
-    line-height: 1.6;
-    color: #475569;
-    max-width: 720px;
-    margin: 0 auto 40px auto;
-    font-weight: 400;
-  }
-
-  .hp-hero-input-bar {
+  .hp-nav-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--ink);
+    color: var(--paper);
     display: flex;
     align-items: center;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 100px;
-    padding: 8px 12px 8px 24px;
-    width: 100%;
-    max-width: 640px;
-    margin: 0 auto 24px auto;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.03);
-  }
-
-  .hp-hero-input-bar input {
-    border: none;
-    outline: none;
-    width: 100%;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    justify-content: center;
     font-size: 1rem;
-    color: #0f172a;
-    background: transparent;
+    flex-shrink: 0;
   }
 
-  .hp-hero-input-bar input::placeholder {
-    color: #94a3b8;
+  .hp-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 36px;
   }
 
-  .hp-input-bar-btn {
-    font-family: 'Outfit', sans-serif;
-    background: #0f172a;
-    color: #ffffff;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 100px;
-    font-size: 0.95rem;
+  .hp-nav-link {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--slate);
+    cursor: pointer;
+    position: relative;
+    padding: 4px 0;
+  }
+
+  .hp-nav-link:hover { color: var(--ink); }
+
+  .hp-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .hp-nav-login {
+    font-size: 0.92rem;
     font-weight: 600;
+    color: var(--ink);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 4px;
+  }
+
+  .hp-nav-cta {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--paper);
+    background: var(--ink);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 100px;
     cursor: pointer;
     white-space: nowrap;
   }
 
-  .hp-input-bar-btn:hover {
-    background: #1e293b;
+  .hp-nav-cta:hover { background: var(--forest-d); }
+
+  .hp-nav-burger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink);
+    font-size: 1.4rem;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     HERO
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-hero {
+    position: relative;
+    padding: 88px 48px 64px;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 56px;
+    align-items: center;
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  .hp-hero-blob {
+    position: absolute;
+    top: -120px;
+    right: -160px;
+    width: 620px;
+    height: 620px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(47,111,78,0.16), rgba(47,111,78,0) 70%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hp-hero-bg-image {
+    position: absolute;
+    top: -60px;
+    right: -120px;
+    width: 760px;
+    height: auto;
+    max-width: none;
+    opacity: 0.22;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(circle at 65% 35%, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0) 80%);
+    mask-image: radial-gradient(circle at 65% 35%, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0) 80%);
+  }
+
+  .hp-hero-left {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hp-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 7px 14px 7px 8px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--slate);
+    letter-spacing: 0.01em;
+    margin-bottom: 28px;
+  }
+
+  .hp-eyebrow-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--forest);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .hp-eyebrow-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1px solid var(--forest);
+    opacity: 0.5;
+    animation: hp-pulse-ring 2.2s ease-out infinite;
+  }
+
+  @keyframes hp-pulse-ring {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+
+  .hp-hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 3.6rem;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 22px 0;
+    color: var(--ink);
+    max-width: 560px;
+  }
+
+  .hp-hero h1 em {
+    font-style: italic;
+    color: var(--forest-d);
+    font-weight: 500;
+  }
+
+  .hp-hero-desc {
+    font-size: 1.08rem;
+    line-height: 1.65;
+    color: var(--slate);
+    max-width: 480px;
+    margin: 0 0 36px 0;
   }
 
   .hp-hero-actions {
     display: flex;
-    gap: 16px;
-    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 44px;
     flex-wrap: wrap;
   }
 
-  .hp-btn-outline-dark {
-    font-family: 'Outfit', sans-serif;
-    background: #ffffff;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    padding: 12px 28px;
-    border-radius: 100px;
-    font-size: 0.95rem;
+  .hp-btn-primary {
+    font-size: 0.96rem;
     font-weight: 600;
+    color: var(--paper);
+    background: var(--ink);
+    border: none;
+    padding: 15px 26px;
+    border-radius: 100px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .hp-btn-primary:hover { background: var(--forest-d); }
+
+  .hp-btn-secondary {
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--line);
+    padding: 15px 24px;
+    border-radius: 100px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 8px;
   }
 
-  .hp-btn-outline-dark:hover {
-    background: #f8fafc;
-    color: #0f172a;
-    border-color: #cbd5e1;
+  .hp-btn-secondary:hover { border-color: var(--ink); background: var(--paper-2); }
+
+  .hp-hero-proof {
+    display: flex;
+    align-items: center;
+    gap: 16px;
   }
 
-  /* ── SECTION B: CORE SAFEGUARDS REFACTORED (New Block Color Style) ── */
-  .hp-section-wrapper {
+  .hp-proof-avatars {
+    display: flex;
+  }
+
+  .hp-proof-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--paper);
+    margin-left: -10px;
+    background: var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--slate);
+  }
+
+  .hp-proof-avatar:first-child { margin-left: 0; }
+
+  .hp-proof-text {
+    font-size: 0.85rem;
+    color: var(--slate);
+    line-height: 1.4;
+  }
+
+  .hp-proof-text strong { color: var(--ink); }
+  /* ══════════════════════════════════════════════════════════════════
+     HERO RIGHT — LIVE SCORECARD (signature element)
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-hero-right {
+    position: relative;
+    z-index: 1;
+    padding: 28px 28px 22px 8px;
+  }
+
+  .hp-scorecard {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 24px 60px -20px rgba(11, 18, 32, 0.12);
+    position: relative;
+    margin: 26px 0 24px;
+  }
+
+  .hp-scorecard-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  .hp-scorecard-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--slate-l);
+  }
+
+  .hp-scorecard-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--forest-d);
+    background: var(--forest-l);
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+
+  .hp-scorecard-live span.hp-live-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--forest);
+  }
+
+  .hp-scorecard-body {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding-bottom: 22px;
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 20px;
+  }
+
+  .hp-score-ring {
+    position: relative;
+    width: 108px;
+    height: 108px;
+    flex-shrink: 0;
+  }
+
+  .hp-score-ring svg { transform: rotate(-90deg); }
+
+  .hp-score-ring-track {
+    fill: none;
+    stroke: var(--line-soft);
+    stroke-width: 10;
+  }
+
+  .hp-score-ring-fill {
+    fill: none;
+    stroke: var(--forest);
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .hp-score-ring-num {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    align-items: center;
+    justify-content: center;
   }
 
-  .hp-centered-title {
-    text-align: center;
+  .hp-score-ring-num strong {
+    font-family: 'Fraunces', serif;
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
   }
 
-  .hp-centered-title h2 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin: 0 0 10px 0;
-    color: #0f172a;
-    letter-spacing: -0.02em;
+  .hp-score-ring-num span {
+    font-size: 0.65rem;
+    color: var(--slate-l);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
   }
 
-  .hp-centered-title p {
-    font-size: 1.05rem;
-    color: #64748b;
+  .hp-score-summary h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 6px 0;
+  }
+
+  .hp-score-summary p {
+    font-size: 0.86rem;
+    color: var(--slate);
+    line-height: 1.5;
     margin: 0;
   }
 
-  .hp-trio-layout {
+  .hp-scorecard-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .hp-score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+  }
+
+  .hp-score-row-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    min-width: 0;
+  }
+
+  .hp-row-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    flex-shrink: 0;
+  }
+
+  .hp-row-icon.ok { background: var(--forest-l); color: var(--forest-d); }
+  .hp-row-icon.flag { background: var(--clay-l); color: var(--clay); }
+
+  .hp-score-row-status {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .hp-score-row-status.ok { color: var(--forest-d); }
+  .hp-score-row-status.flag { color: var(--clay); }
+
+  .hp-scorecard-foot {
+    margin-top: 18px;
+    font-size: 0.78rem;
+    color: var(--slate-l);
+    text-align: center;
+  }
+
+  .hp-scorecard-foot code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--slate);
+  }
+
+  .hp-float-chip {
+    position: absolute;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink);
+    box-shadow: 0 12px 30px -10px rgba(11,18,32,0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 2;
+    white-space: nowrap;
+  }
+
+  .hp-float-chip.c1 { top: 0; left: -4px; }
+  .hp-float-chip.c2 { bottom: 0; right: -4px; }
+  /* ══════════════════════════════════════════════════════════════════
+     SHARED SECTION HELPERS
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-section {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 88px 48px;
+  }
+
+  .hp-section-tight { padding-top: 0; }
+
+  .hp-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--forest-d);
+    margin-bottom: 14px;
+  }
+
+  .hp-kicker::before {
+    content: '';
+    width: 16px;
+    height: 1.5px;
+    background: var(--forest);
+  }
+
+  .hp-section-head {
+    max-width: 620px;
+    margin-bottom: 52px;
+  }
+
+  .hp-section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+
+  .hp-section-head h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 2.4rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 14px 0;
+  }
+
+  .hp-section-head p {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: var(--slate);
+    margin: 0;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LOGO / TRUST STRIP
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-trust-strip {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 48px 64px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .hp-trust-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--slate-l);
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .hp-trust-logos {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    opacity: 0.6;
+  }
+
+  .hp-trust-logos span {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--slate);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     STATS BAND
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-stats-band {
+    background: var(--ink);
+    border-radius: 28px;
+    max-width: 1320px;
+    margin: 0 auto 0;
+    padding: 56px 48px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hp-stats-glow {
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    width: 500px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(47,111,78,0.35), transparent 70%);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .hp-stat-item {
+    position: relative;
+    z-index: 1;
+    padding: 0 28px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .hp-stat-item:last-child { border-right: none; }
+
+  .hp-stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 2.6rem;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+
+  .hp-stat-num span {
+    color: #7FBF9E;
+  }
+
+  .hp-stat-label {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.45;
+  }
+  /* ══════════════════════════════════════════════════════════════════
+     FEATURE GRID
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-features-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
   }
 
-  .hp-feature-node {
-    background: #0f172a; /* Deep structural dark fill from design template */
-    border: 1px solid #1e293b;
-    border-radius: 16px; /* Clean block geometry shapes */
-    padding: 32px;
+  .hp-feature-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 30px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
-    position: relative;
-    overflow: hidden;
+    gap: 16px;
+    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1), border-color 0.3s;
   }
 
-  .hp-feature-node:hover {
+  .hp-feature-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
-    border-color: #334155;
+    box-shadow: 0 20px 44px -16px rgba(11,18,32,0.12);
+    border-color: #D7DEE8;
   }
 
-  .hp-icon-housing {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+  .hp-feature-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.3rem;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: var(--forest-l);
+    color: var(--forest-d);
   }
 
-  /* Distinct color paths for structural icon badges as requested */
-  .hp-icon-housing.blue-badge { background: #2563eb; }
-  .hp-icon-housing.emerald-badge { background: #10b981; }
-  .hp-icon-housing.purple-badge { background: #8b5cf6; }
-
-  .hp-feature-node h3 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.35rem;
-    font-weight: 700;
+  .hp-feature-card h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.18rem;
+    font-weight: 600;
+    color: var(--ink);
     margin: 0;
-    color: #ffffff; /* High contrast heading title */
-    letter-spacing: -0.01em;
   }
 
-  .hp-feature-node p {
+  .hp-feature-card p {
     font-size: 0.92rem;
     line-height: 1.6;
-    color: #94a3b8; /* Muted modern prose spacing layout text */
+    color: var(--slate);
     margin: 0;
   }
 
-  /* ── SECTION C: INTERACTIVE RISK CONSOLE HUB ── */
-  .hp-glass-mainframe {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+  /* ══════════════════════════════════════════════════════════════════
+     RISK CONSOLE
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-console {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
     border-radius: 24px;
-    padding: 44px;
-    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.02);
+    padding: 48px;
   }
 
-  .hp-console-split {
+  .hp-console-grid {
     display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 40px;
-    margin-top: 32px;
+    grid-template-columns: 270px 1fr;
+    gap: 36px;
+    margin-top: 36px;
   }
 
   .hp-console-menu {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
 
   .hp-console-item {
-    font-family: 'Outfit', sans-serif;
+    font-family: inherit;
     background: transparent;
-    color: #475569;
+    color: var(--slate);
     border: 1px solid transparent;
-    padding: 14px 18px;
+    padding: 13px 16px;
     border-radius: 10px;
     cursor: pointer;
     text-align: left;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    text-transform: capitalize;
   }
 
   .hp-console-item:hover {
-    color: #0f172a;
-    background: #f1f5f9;
+    color: var(--ink);
+    background: var(--paper);
   }
 
   .hp-console-item.is-selected {
-    background: #f1f5f9;
-    color: #2563eb;
-    border: 1px solid #cbd5e1;
+    background: var(--forest-l);
+    color: var(--forest-d);
+    border-color: rgba(47,111,78,0.25);
   }
 
   .hp-console-arrow {
     opacity: 0;
     transform: translateX(-4px);
+    transition: opacity 0.2s, transform 0.2s;
   }
 
   .hp-console-item.is-selected .hp-console-arrow {
@@ -304,43 +814,59 @@ const AUDIT_TEMPLATE_CSS = `
     transform: translateX(0);
   }
 
-  .hp-view-surface {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+  .hp-console-view {
+    background: var(--paper);
+    border: 1px solid var(--line);
     border-radius: 16px;
-    padding: 36px;
+    padding: 32px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 22px;
   }
 
-  .hp-view-surface h4 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.8rem;
+  .hp-console-view-label {
+    font-size: 0.74rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #475569;
-    margin: 0 0 8px 0;
+    letter-spacing: 0.08em;
+    color: var(--slate-l);
+    font-weight: 700;
+    margin: 0 0 6px 0;
   }
 
-  .hp-surface-body {
-    font-size: 1rem;
-    line-height: 1.55;
-    color: #334155;
+  .hp-console-view-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 4px 0;
+  }
+
+  .hp-console-view-sub {
+    font-size: 0.92rem;
+    color: var(--forest-d);
+    font-weight: 600;
     margin: 0;
   }
 
-  .hp-log-banner {
-    background: #fef2f2;
-    border: 1px solid #fee2e2;
+  .hp-console-rule-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--slate);
+    margin: 0;
+  }
+
+  .hp-alert-banner {
+    background: var(--clay-l);
+    border: 1px solid #F0CCB8;
     border-radius: 10px;
-    padding: 14px 18px;
-    font-family: monospace;
-    font-size: 0.88rem;
-    color: #991b1b;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: #8A3A1F;
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
   }
 
   .hp-token-wrap {
@@ -349,167 +875,150 @@ const AUDIT_TEMPLATE_CSS = `
     gap: 8px;
   }
 
-  .hp-token-node {
-    font-family: monospace;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    color: #475569;
+  .hp-token {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--slate);
     padding: 5px 10px;
     border-radius: 6px;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
   }
 
-  /* ── SECTION D: BLUEPRINT DECK WITH IMAGES ── */
-  .hp-blueprint-deck {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-  }
-
-  .hp-blueprint-node {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 20px;
-    border-radius: 16px;
+  /* ══════════════════════════════════════════════════════════════════
+     SPEC SUMMARY STRIP
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-spec-summary {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 28px;
+    padding: 20px 28px;
+    background: var(--forest-l);
+    border: 1px solid #CDE3D6;
+    border-radius: 16px;
   }
 
-  .hp-blueprint-node:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  .hp-spec-summary-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
   }
 
-  .hp-blueprint-img-frame {
-    width: 100%;
-    height: 140px;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
+  .hp-spec-summary-stat strong {
+    font-family: 'Fraunces', serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--forest-d);
+    line-height: 1;
   }
 
-  .hp-blueprint-img-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+  .hp-spec-summary-stat span {
+    font-size: 0.84rem;
+    color: var(--ink);
+    font-weight: 600;
   }
 
-  .hp-blueprint-node h4 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0;
-    color: #0f172a;
+  .hp-spec-summary-divider {
+    width: 1px;
+    height: 28px;
+    background: #CDE3D6;
   }
 
-  .hp-blueprint-node p {
-    font-size: 0.88rem;
-    line-height: 1.5;
-    color: #475569;
-    margin: 0;
-  }
-
-  /* ── SECTION E: PRODUCTION SCHEMATIC MATRIX ── */
+  /* ══════════════════════════════════════════════════════════════════
+     SCHEMA TABLE
+     ══════════════════════════════════════════════════════════════════ */
   .hp-table-frame {
     overflow-x: auto;
-    border-radius: 14px;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.005);
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    box-shadow: 0 1px 2px rgba(11,18,32,0.03);
   }
 
-  .hp-schematic-grid {
+  .hp-schema-table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
+    min-width: 760px;
   }
 
-  .hp-schematic-grid th {
-    font-family: 'Outfit', sans-serif;
-    background: #f8fafc;
-    color: #0f172a;
+  .hp-schema-table th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    background: var(--paper);
+    color: var(--slate-l);
     padding: 16px 20px;
-    font-weight: 600;
-    border-bottom: 1px solid #e2e8f0;
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
   }
 
-  .hp-schematic-grid td {
-    padding: 16px 20px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
+  .hp-schema-table th:first-child { padding-left: 24px; width: 44px; }
+
+  .hp-schema-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink);
     vertical-align: top;
     line-height: 1.5;
   }
 
-  .hp-schematic-grid tr:last-child td {
-    border-bottom: none;
+  .hp-schema-table td:first-child { padding-left: 24px; }
+
+  .hp-schema-table tr:last-child td { border-bottom: none; }
+  .hp-schema-table tr:hover td { background: var(--paper); }
+
+  .hp-schema-table td p { margin: 0; color: var(--slate); font-size: 0.88rem; }
+
+  .hp-row-index {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    background: var(--forest-l);
+    color: var(--forest-d);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    font-weight: 700;
   }
 
-  .hp-schematic-grid tr:hover td {
-    background: #f8fafc;
-  }
-
-  .hp-badge-critical {
-    background: #fef2f2;
-    color: #b91c1c;
-    border: 1px solid #fca5a5;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 0.72rem;
-    font-weight: 600;
+  .hp-pill-required {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--forest-l);
+    color: var(--forest-d);
+    border: 1px solid #CDE3D6;
+    padding: 4px 10px 4px 8px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
-  .hp-badge-secondary {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
+  .hp-pill-required::before {
+    content: '✓';
+    font-size: 0.7rem;
   }
 
-  .hp-code-inline {
-    font-family: monospace;
-    background: #f1f5f9;
+  .hp-code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--paper);
     padding: 2px 6px;
     border-radius: 4px;
-    color: #2563eb;
-    font-size: 0.85rem;
+    color: var(--forest-d);
+    font-size: 0.84rem;
+    border: 1px solid var(--line-soft);
   }
-
-  /* ── SECTION F: PRICING CARDS ── */
-  .hp-pricing-section {
-    display: flex;
-    flex-direction: column;
-    gap: 48px;
-    position: relative;
-  }
-
-  .hp-pricing-header {
-    text-align: center;
-  }
-
-  .hp-pricing-header h2 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 2.6rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0 0 12px 0;
-    letter-spacing: -0.03em;
-  }
-
-  .hp-pricing-header p {
-    font-size: 1.05rem;
-    color: #64748b;
-    margin: 0;
-  }
-
+  /* ══════════════════════════════════════════════════════════════════
+     PRICING
+     ══════════════════════════════════════════════════════════════════ */
   .hp-pricing-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -517,191 +1026,143 @@ const AUDIT_TEMPLATE_CSS = `
     align-items: stretch;
   }
 
-  /* ── BASE CARD ── */
   .hp-price-card {
     position: relative;
-    border-radius: 24px;
-    padding: 40px 36px 36px;
+    border-radius: 22px;
+    padding: 36px 32px;
     display: flex;
     flex-direction: column;
-    gap: 0;
-    overflow: hidden;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    background: var(--paper-2);
+    border: 1.5px solid var(--line);
+    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1);
   }
 
   .hp-price-card:hover {
-    transform: translateY(-6px) !important;
+    transform: translateY(-6px);
+    box-shadow: 0 24px 50px -18px rgba(11,18,32,0.14);
   }
 
-  /* ── STARTER (Audit) ── */
-  .hp-price-card.starter {
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  .hp-price-card.featured {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
   }
 
-  .hp-price-card.starter:hover {
-    box-shadow: 0 16px 48px rgba(15, 23, 42, 0.12) !important;
-    border-color: #cbd5e1;
-  }
+  .hp-price-card.featured .hp-plan-name,
+  .hp-price-card.featured .hp-price-amount,
+  .hp-price-card.featured .hp-price-currency { color: #ffffff; }
 
-  /* ── PROFESSIONAL (Monthly) ── */
-  .hp-price-card.professional {
-    background: #0f172a;
-    border: 1.5px solid #1e293b;
-    box-shadow: 0 8px 40px rgba(15, 23, 42, 0.22);
-  }
+  .hp-price-card.featured .hp-plan-sub,
+  .hp-price-card.featured .hp-price-unit,
+  .hp-price-card.featured .hp-capacity-note { color: rgba(255,255,255,0.6); }
 
-  .hp-price-card.professional:hover {
-    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.38) !important;
-  }
+  .hp-price-card.featured .hp-price-divider { border-color: rgba(255,255,255,0.12); }
+  .hp-price-card.featured .hp-feature-list li { color: rgba(255,255,255,0.82); }
+  .hp-price-card.featured .hp-feat-tick { color: #7FBF9E; }
 
-  /* ── ENTERPRISE (API) ── */
-  .hp-price-card.enterprise {
-    background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-    border: 1.5px solid rgba(139, 92, 246, 0.35);
-    box-shadow: 0 8px 40px rgba(109, 40, 217, 0.18), 0 0 0 1px rgba(139,92,246,0.1);
-  }
-
-  .hp-price-card.enterprise:hover {
-    box-shadow: 0 20px 60px rgba(109, 40, 217, 0.32), 0 0 0 1px rgba(139,92,246,0.2) !important;
-  }
-
-  /* shimmer lines on enterprise */
-  .hp-price-card.enterprise::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.6), transparent);
-  }
-
-  .hp-price-card.enterprise::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at 50% -20%, rgba(139, 92, 246, 0.12) 0%, transparent 65%);
-    pointer-events: none;
-  }
-
-  /* ── PLAN BADGE ── */
-  .hp-plan-badge {
+  .hp-plan-chip {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 12px;
-    border-radius: 100px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-bottom: 28px;
-    width: fit-content;
+    letter-spacing: 0.04em;
+    color: var(--slate-l);
+    margin-bottom: 16px;
   }
 
-  .starter .hp-plan-badge {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
+  .hp-price-card.featured .hp-plan-chip { color: #7FBF9E; }
+
+  .hp-popular-tag {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: var(--forest);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 5px 11px;
+    border-radius: 100px;
   }
 
-  .professional .hp-plan-badge {
-    background: rgba(37, 99, 235, 0.15);
-    color: #60a5fa;
-    border: 1px solid rgba(37, 99, 235, 0.25);
+  .hp-soon-tag {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: var(--paper);
+    color: var(--slate);
+    border: 1px solid var(--line);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 5px 11px;
+    border-radius: 100px;
   }
 
-  .enterprise .hp-plan-badge {
-    background: rgba(139, 92, 246, 0.18);
-    color: #c4b5fd;
-    border: 1px solid rgba(139, 92, 246, 0.3);
-  }
-
-  /* ── PLAN NAME ── */
   .hp-plan-name {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.45rem;
-    font-weight: 800;
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--ink);
     margin: 0 0 6px 0;
-    letter-spacing: -0.02em;
   }
 
-  .starter .hp-plan-name { color: #0f172a; }
-  .professional .hp-plan-name { color: #f1f5f9; }
-  .enterprise .hp-plan-name { color: #ede9fe; }
-
-  /* ── PLAN SUBTITLE ── */
   .hp-plan-sub {
     font-size: 0.88rem;
-    margin: 0 0 32px 0;
+    color: var(--slate);
     line-height: 1.5;
+    margin: 0 0 22px 0;
+    min-height: 42px;
   }
 
-  .starter .hp-plan-sub { color: #64748b; }
-  .professional .hp-plan-sub { color: #64748b; }
-  .enterprise .hp-plan-sub { color: #7c7fa3; }
-
-  /* ── PRICE BLOCK ── */
   .hp-price-block {
     display: flex;
-    align-items: baseline;
-    gap: 4px;
-    margin-bottom: 6px;
+    align-items: flex-start;
+    gap: 2px;
   }
 
   .hp-price-currency {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    line-height: 1;
+    color: var(--ink);
+    margin-top: 6px;
   }
-
-  .starter .hp-price-currency { color: #475569; }
-  .professional .hp-price-currency { color: #94a3b8; }
-  .enterprise .hp-price-currency { color: #7c7fa3; }
 
   .hp-price-amount {
-    font-family: 'Outfit', sans-serif;
-    font-size: 3.4rem;
-    font-weight: 900;
+    font-family: 'Fraunces', serif;
+    font-size: 2.7rem;
+    font-weight: 600;
+    color: var(--ink);
     line-height: 1;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.02em;
   }
-
-  .starter .hp-price-amount { color: #0f172a; }
-  .professional .hp-price-amount { color: #f8fafc; }
-  .enterprise .hp-price-amount { color: #ede9fe; }
 
   .hp-price-unit {
-    font-size: 0.85rem;
-    font-weight: 500;
-    margin-bottom: 4px;
+    font-size: 0.84rem;
+    color: var(--slate);
+    margin: 4px 0 2px 0;
   }
 
-  .starter .hp-price-unit { color: #94a3b8; }
-  .professional .hp-price-unit { color: #475569; }
-  .enterprise .hp-price-unit { color: #5c5f7a; }
+  .hp-capacity-note {
+    font-size: 0.8rem;
+    color: var(--slate-l);
+    margin: 0 0 22px 0;
+  }
 
-  /* ── DIVIDER ── */
   .hp-price-divider {
-    height: 1px;
-    margin: 28px 0;
+    border-top: 1px solid var(--line);
+    margin-bottom: 22px;
   }
 
-  .starter .hp-price-divider { background: #f1f5f9; }
-  .professional .hp-price-divider { background: #1e293b; }
-  .enterprise .hp-price-divider { background: rgba(139, 92, 246, 0.18); }
-
-  /* ── FEATURE LIST ── */
   .hp-feature-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 36px 0;
     display: flex;
     flex-direction: column;
-    gap: 13px;
+    gap: 12px;
+    margin: 0 0 28px 0;
     flex-grow: 1;
   }
 
@@ -709,142 +1170,313 @@ const AUDIT_TEMPLATE_CSS = `
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    font-size: 0.91rem;
-    line-height: 1.45;
-    transition: none !important;
+    font-size: 0.88rem;
+    color: var(--ink);
+    line-height: 1.4;
   }
 
-  .starter .hp-feature-list li { color: #475569; }
-  .professional .hp-feature-list li { color: #94a3b8; }
-  .enterprise .hp-feature-list li { color: #7c7fa3; }
-
-  .hp-feat-icon {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
+  .hp-feat-tick {
+    color: var(--forest-d);
+    font-weight: 700;
     flex-shrink: 0;
     margin-top: 1px;
-    transition: none !important;
   }
 
-  .starter .hp-feat-icon { background: #dcfce7; color: #16a34a; }
-  .professional .hp-feat-icon { background: rgba(37,99,235,0.18); color: #60a5fa; }
-  .enterprise .hp-feat-icon { background: rgba(139,92,246,0.2); color: #c4b5fd; }
-
-  /* ── CTA BUTTON ── */
   .hp-price-cta {
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 700;
-    padding: 14px 28px;
-    border-radius: 12px;
+    font-size: 0.94rem;
+    font-weight: 600;
+    color: var(--paper);
+    background: var(--ink);
     border: none;
+    padding: 14px 20px;
+    border-radius: 100px;
     cursor: pointer;
     width: 100%;
     text-align: center;
-    letter-spacing: 0.01em;
-    transition: opacity 0.2s, transform 0.2s !important;
   }
 
-  .hp-price-cta:hover { opacity: 0.88; transform: none !important; }
-  .hp-price-cta:active { transform: scale(0.98) !important; }
+  .hp-price-cta:hover { background: var(--forest-d); }
 
-  .starter .hp-price-cta {
-    background: #0f172a;
+  .hp-price-card.featured .hp-price-cta {
+    background: var(--forest);
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(15,23,42,0.15);
   }
 
-  .professional .hp-price-cta {
-    background: #2563eb;
-    color: #ffffff;
-    box-shadow: 0 4px 16px rgba(37,99,235,0.35);
-  }
+  .hp-price-card.featured .hp-price-cta:hover { background: #3A8362; }
 
-  .enterprise .hp-price-cta {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9);
-    color: #ffffff;
-    box-shadow: 0 4px 20px rgba(109,40,217,0.4);
+  .hp-price-cta:disabled {
+    background: var(--line);
+    color: var(--slate-l);
     cursor: not-allowed;
-    opacity: 0.75;
   }
 
-  /* popular chip on professional card */
-  .hp-popular-chip {
+  /* ══════════════════════════════════════════════════════════════════
+     CLOSING CTA BAND
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-cta-band {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 48px 96px;
+  }
+
+  .hp-cta-inner {
+    background: linear-gradient(135deg, #14301F 0%, var(--ink) 60%);
+    border-radius: 28px;
+    padding: 72px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hp-cta-inner::before {
+    content: '';
     position: absolute;
-    top: 24px;
-    right: 24px;
-    background: #2563eb;
-    color: #ffffff;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 100px;
+    top: -80px;
+    right: -80px;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(127,191,158,0.35), transparent 70%);
   }
 
-  /* ── COMING SOON RIBBON on enterprise ── */
-  .hp-coming-soon-ribbon {
-    position: absolute;
-    top: 20px;
-    right: -32px;
-    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  .hp-cta-inner h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 2.5rem;
+    font-weight: 600;
     color: #ffffff;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 5px 42px;
-    transform: rotate(35deg);
-    box-shadow: 0 2px 8px rgba(109,40,217,0.35);
+    margin: 0 0 14px 0;
+    letter-spacing: -0.01em;
+    position: relative;
+    z-index: 1;
   }
 
-  /* capacity note */
-  .hp-capacity-note {
+  .hp-cta-inner p {
+    font-size: 1.02rem;
+    color: rgba(255,255,255,0.65);
+    margin: 0 0 32px 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hp-cta-inner .hp-btn-primary {
+    background: #ffffff;
+    color: var(--ink);
+    position: relative;
+    z-index: 1;
+  }
+
+  .hp-cta-inner .hp-btn-primary:hover { background: #7FBF9E; color: #ffffff; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     FOOTER
+     ══════════════════════════════════════════════════════════════════ */
+  .hp-footer {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 48px 56px;
+  }
+
+  .hp-footer-top {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hp-footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+
+  .hp-footer-about {
+    font-size: 0.88rem;
+    color: var(--slate);
+    line-height: 1.6;
+    max-width: 280px;
+  }
+
+  .hp-footer-col h5 {
     font-size: 0.78rem;
-    margin: 8px 0 0 0;
-    font-style: italic;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--slate-l);
+    margin: 0 0 16px 0;
   }
 
-  .starter .hp-capacity-note { color: #94a3b8; }
-  .professional .hp-capacity-note { color: #475569; }
-  .enterprise .hp-capacity-note { color: #5c5f7a; }
-
-  /* ── Media Engine Viewports ── */
-  @media (max-width: 1200px) {
-    .hp-blueprint-deck { grid-template-columns: repeat(2, 1fr); }
+  .hp-footer-col ul {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
   }
 
-  @media (max-width: 1120px) {
-    .hp-hero-title-group h1 { font-size: 3.2rem; }
-    .hp-trio-layout { grid-template-columns: repeat(2, 1fr); }
-    .hp-console-split { grid-template-columns: 1fr; }
-    .hp-console-menu { flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
+  .hp-footer-col a {
+    font-size: 0.9rem;
+    color: var(--slate);
+    cursor: pointer;
+  }
+
+  .hp-footer-col a:hover { color: var(--ink); }
+
+  .hp-footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 28px;
+    font-size: 0.84rem;
+    color: var(--slate-l);
+  }
+
+  .hp-footer-bottom-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     RESPONSIVE
+     ══════════════════════════════════════════════════════════════════ */
+  @media (max-width: 1080px) {
+    .hp-hero { grid-template-columns: 1fr; padding: 64px 32px 40px; }
+    .hp-hero h1 { font-size: 2.8rem; max-width: 100%; }
+    .hp-hero-desc { max-width: 100%; }
+    .hp-hero-blob { display: none; }
+    .hp-hero-bg-image { display: none; }
+    .hp-stats-band { grid-template-columns: repeat(2, 1fr); gap: 32px 0; border-radius: 20px; }
+    .hp-stat-item { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 24px; }
+    .hp-features-grid { grid-template-columns: 1fr; }
+    .hp-console-grid { grid-template-columns: 1fr; }
+    .hp-console-menu { flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 4px; }
     .hp-console-item { white-space: nowrap; }
-    .hp-console-arrow { display: none; }
-    .hp-pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+    .hp-pricing-grid { grid-template-columns: 1fr; }
+    .hp-footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .hp-section { padding: 64px 32px; }
+    .hp-nav { padding: 16px 24px; }
+    .hp-nav-links { display: none; }
   }
 
-  @media (max-width: 700px) {
-    .hp-trio-layout { grid-template-columns: 1fr; }
-    .hp-blueprint-deck { grid-template-columns: 1fr; }
-    .hp-hero-title-group h1 { font-size: 2.4rem; }
-    .hp-hero-input-bar { border-radius: 20px; flex-direction: column; padding: 16px; gap: 12px; }
-    .hp-input-bar-btn { width: 100%; border-radius: 12px; }
-    .hp-wrapper { padding: 16px; }
-    .hp-price-card { padding: 32px 28px 28px; }
+  @media (max-width: 640px) {
+    .hp-hero { padding: 48px 20px 32px; }
+    .hp-hero h1 { font-size: 2.2rem; }
+    .hp-section { padding: 48px 20px; }
+    .hp-section-head h2 { font-size: 1.8rem; }
+    .hp-stats-band { padding: 36px 24px; grid-template-columns: 1fr; }
+    .hp-stat-item { border-right: none !important; }
+    .hp-console { padding: 28px 20px; }
+    .hp-cta-inner { padding: 48px 24px; }
+    .hp-cta-inner h2 { font-size: 1.8rem; }
+    .hp-footer-top { grid-template-columns: 1fr; }
+    .hp-footer-bottom { flex-direction: column; gap: 14px; align-items: flex-start; }
+    .hp-trust-strip { flex-direction: column; align-items: flex-start; gap: 16px; padding-bottom: 40px; }
+    .hp-nav-actions .hp-nav-login { display: none; }
+    .hp-hero-actions { flex-direction: column; align-items: stretch; }
+    .hp-hero-actions .hp-btn-primary, .hp-hero-actions .hp-btn-secondary { justify-content: center; }
+    .hp-spec-summary { flex-wrap: wrap; gap: 16px; padding: 18px 20px; }
+    .hp-spec-summary-divider { display: none; }
   }
 `
 
+const NAV_LINKS = [
+  { label: 'Safeguards', target: 'safeguards' },
+  { label: 'Risk Console', target: 'compliance-console' },
+  { label: 'Data Spec', target: 'data-spec' },
+  { label: 'Pricing', target: 'pricing' },
+]
+
+const MODULES_DATA = {
+  gender: {
+    title: 'Gender Pipeline Parity',
+    framework: 'Equal Opportunity & Labour Equity Standards',
+    rule: 'Compares shortlist and offer rates between genders at every stage of the pipeline to surface statistically significant drop-off.',
+    flag: 'FLAG [GENDER-V3]: Offer rate for women is 31% lower than men at the technical-interview stage — outside the accepted variance band.',
+    vars: ['gender', 'shortlisted', 'hired'],
+    status: 'flag',
+  },
+  caste: {
+    title: 'Caste & Social Category Parity',
+    framework: 'Constitutional Equality Provisions & Reservation Mandates',
+    rule: 'Checks shortlisting and conversion rates across caste and social-category groups against statutory representation expectations.',
+    flag: 'FLAG [CASTE-V3]: Conversion rate for reserved-category applicants drops 18 points between application and shortlist.',
+    vars: ['caste_category', 'shortlisted', 'hired'],
+    status: 'flag',
+  },
+  disability: {
+    title: 'Disability Access Parity',
+    framework: 'Equal Access & Reasonable Accommodation Statutes',
+    rule: 'Tracks candidates with disclosed disabilities through every funnel stage to catch accessibility-related drop-off early.',
+    flag: 'CLEAR [DISABILITY-V3]: No statistically significant gap detected this audit cycle. Continue monitoring.',
+    vars: ['disability_status', 'shortlisted', 'hired'],
+    status: 'ok',
+  },
+  skin: {
+    title: 'Appearance Bias Scan',
+    framework: 'Anti-Discrimination & Equal Representation Codes',
+    rule: 'Screens for correlation between recorded appearance attributes and outcomes in remote, photo-based evaluation rounds.',
+    flag: 'FLAG [APPEARANCE-V3]: Weak but consistent correlation detected between skin-tone field and first-round rejection.',
+    vars: ['skin_tone_group', 'shortlisted', 'hired'],
+    status: 'flag',
+  },
+  proxy: {
+    title: 'Proxy Variable Detection',
+    framework: 'Indirect Discrimination Safeguards',
+    rule: 'Scans neutral-looking fields — postal code, school name — for hidden correlation with protected demographic attributes.',
+    flag: 'FLAG [PROXY-V3]: Postal code field reconstructs gender with 86% accuracy — treat as a sensitive proxy field.',
+    vars: ['postal_code', 'location_category', 'hired'],
+    status: 'flag',
+  },
+  funnel: {
+    title: 'Multi-Stage Funnel Tracker',
+    framework: 'Full-Lifecycle Process Fairness Review',
+    rule: 'Breaks the hiring funnel into individual gates — screen, assessment, interview, offer — to isolate exactly where imbalance enters.',
+    flag: 'FLAG [FUNNEL-V3]: 92% of the disparity originates at the technical-assessment gate, not later interview rounds.',
+    vars: ['assessment_score', 'interview_status', 'hired'],
+    status: 'flag',
+  },
+  institution: {
+    title: 'Sourcing Concentration Scan',
+    framework: 'Open Talent Access & Anti-Elitism Benchmarks',
+    rule: 'Measures how dependent your hires are on a narrow band of universities or past employers, which can quietly exclude qualified talent.',
+    flag: 'CLEAR [INSTITUTION-V3]: Hires this cycle draw from 41 distinct institutions — within healthy diversity range.',
+    vars: ['university_tier', 'source_channel', 'hired'],
+    status: 'ok',
+  },
+  marital: {
+    title: 'Intersectional Outcome Scan',
+    framework: 'Multi-Category Fairness Cross-Check',
+    rule: 'Combines two or more candidate attributes at once to catch compounding disadvantage that single-variable checks miss.',
+    flag: 'FLAG [INTERSECT-V3]: Married women candidates convert 22% lower than every other group combination.',
+    vars: ['marital_status', 'gender', 'hired'],
+    status: 'flag',
+  },
+  age: {
+    title: 'Age Demographics Parity',
+    framework: 'Career-Stage Protection & Lifecycle Fairness Rules',
+    rule: 'Confirms that junior, mid-career, and senior age brackets are evaluated against comparable funnel gates and pass rates.',
+    flag: 'CLEAR [AGE-V3]: Pass-through rates are within 4 points across all age brackets this cycle.',
+    vars: ['age_bracket', 'dob', 'hired'],
+    status: 'ok',
+  },
+  referral: {
+    title: 'Referral Network Guard',
+    framework: 'Sourcing Transparency & Anti-Nepotism Standards',
+    rule: 'Measures how much of your hiring volume comes through internal referrals versus open channels, to catch network monopolisation.',
+    flag: 'FLAG [REFERRAL-V3]: 61% of senior hires came through internal referral — above the recommended 40% ceiling.',
+    vars: ['referral_source', 'application_mode', 'hired'],
+    status: 'flag',
+  },
+}
+
 export default function HomePage({ isGuest = true, onStartApp }) {
   const [activeTab, setActiveTab] = useState('gender')
+  const [scoreAnimated, setScoreAnimated] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const scoreRef = useRef(null)
 
   useEffect(() => {
     const existingTag = document.getElementById(AUDIT_OVERRIDE_ID)
@@ -861,445 +1493,551 @@ export default function HomePage({ isGuest = true, onStartApp }) {
     }
   }, [])
 
-  const modulesData = {
-    gender: {
-      title: "Gender Imbalance Framework",
-      framework: "Statutory Labor Equity Standards & Equal Opportunity Directives",
-      rule: "Evaluates pipeline retention rates across technical filters to identify potential drop-off anomalies between applicant tiers.",
-      flag: "🚨 PIPELINE METRIC RISK ALERT [V3-GENDER]: Recruitment process speed markers reflect variation outside standard pipeline constraints.",
-      vars: ["gender", "shortlisted", "hired"]
-    },
-    caste: {
-      title: "Regional Parity Framework",
-      framework: "Constitutional Safety Directives & Regional Diversity Mandates",
-      rule: "Cross-checks pipeline onboarding matrices against local structural availability indicators to flag distribution risks.",
-      flag: "🚨 SPECIFIC THRESHOLD EXCEEDED [V3-REGIONAL]: Sourcing pipeline analysis registers deviation parameters within local structural layers.",
-      vars: ["caste_category", "shortlisted", "hired"]
-    },
-    disability: {
-      title: "Accessibility Guard Matrix",
-      framework: "Universal Adaptive Recruitment Statutes & Equal Access Laws",
-      rule: "Monitors candidate progression markers across adaptive interview setups to isolate potential software access friction points.",
-      flag: "🚨 FUNNEL ADVANCEMENT RISK [V3-ACCESSIBILITY]: Sub-funnel velocity tracks exhibit drop-off lines relative to baseline processing speeds.",
-      vars: ["disability_status", "shortlisted", "hired"]
-    },
-    skin: {
-      title: "Appearance Variable Guard",
-      framework: "Global Anti-Bias Codes & Enterprise Representation Rules",
-      rule: "Scans data paths to protect against unconscious profile filtering tendencies during remote digital evaluation cycles.",
-      flag: "🚨 INSULATION REJECTION FLAG [V3-APPEARANCE]: Evaluation system registers drop-off signals linking pipeline retention to phenotype indices.",
-      vars: ["skin_tone_group", "shortlisted", "hired"]
-    },
-    proxy: {
-      title: "Indirect Correlation Scan",
-      framework: "Hidden Dependency Insulation & Core Integrity Frameworks",
-      rule: "Examines secondary features (such as residential zone codes or high school categories) that replicate restricted demographic patterns.",
-      flag: "🚨 INDIRECT MATCH IDENTIFIED [V3-PROXY]: Secondary environmental fields exhibit unexpected alignment loops with profile variables.",
-      vars: ["postal_code", "location_category", "hired"]
-    },
-    spg: {
-      title: "Multi-Gate Process Tracker",
-      framework: "Comprehensive Funnel Lifecycle Safety Regulations",
-      rule: "Breaks down conversion indices across multi-phase testing systems to isolate the specific gate where process balance spikes.",
-      flag: "🚨 GATED RETENTION ANOMALY [V3-FUNNEL]: Technical interview phase markers demonstrate unproportional screening metrics.",
-      vars: ["assessment_score", "interview_status", "hired"]
-    },
-    institution: {
-      title: "Sourcing Insularity Scan",
-      framework: "Anti-Elitism Benchmarks & Open Talent Network Protocols",
-      rule: "Measures systemic dependency trends over localized university tiers to track reliance indicators on closed legacy channels.",
-      flag: "🚨 TRACKING CONCENTRATION ALERT [V3-INSTITUTION]: Talent conversion pipelines indicate high dependency on a narrow band of university sets.",
-      vars: ["university_tier", "source_channel", "hired"]
-    },
-    marital: {
-      title: "Intersectional Layer Scan",
-      framework: "Multi-Category Safety Matrix & Demography Protection Rules",
-      rule: "Combines overlapping candidate variables to identify hidden process drop-offs masked by high-level raw averages.",
-      flag: "🚨 BLENDED INDEX ANOMALY [V3-INTERSECTIONAL]: Cross-category validation highlights process gaps within specific combined applicant profiles.",
-      vars: ["marital_status", "gender", "hired"]
-    },
-    age: {
-      title: "Age Demographics Matrix",
-      framework: "Universal Career Protection Directives & Lifecycle Safety Laws",
-      rule: "Validates intake streams to verify experienced, mid-career, and junior candidate brackets experience matching evaluation gates.",
-      flag: "🚨 GENERATIONAL VARIANCE DETECTED [V3-AGE]: Funnel progression records show processing differences across candidate age brackets.",
-      vars: ["age_bracket", "dob", "hired"]
-    },
-    referral: {
-      title: "Network Concentration Guard",
-      framework: "Corporate Transparency Standards & Anti-Nepotism Rules",
-      rule: "Measures candidate source networks against standard open-market entries to isolate sourcing monopolization patterns.",
-      flag: "🚨 MONOPOLY CAPTURE RECORDED [V3-NETWORKS]: Internal employee referral channels cross maximum structural balance benchmarks.",
-      vars: ["referral_source", "application_mode", "hired"]
-    }
+  // Trigger the score-ring fill animation once, shortly after mount
+  useEffect(() => {
+    const t = setTimeout(() => setScoreAnimated(true), 250)
+    return () => clearTimeout(t)
+  }, [])
+
+  const currentModule = MODULES_DATA[activeTab] || MODULES_DATA.gender
+
+  const scrollTo = (id) => {
+    setMobileNavOpen(false)
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const currentModule = modulesData[activeTab] || modulesData.gender
+  // Scorecard ring math — 0..100 score mapped to a 264px circumference (r=42)
+  const SCORE = 74
+  const RADIUS = 42
+  const CIRC = 2 * Math.PI * RADIUS
+  const offset = CIRC - (scoreAnimated ? (SCORE / 100) * CIRC : 0)
 
   return (
     <div className="hp-wrapper">
-      <div className="hp-container">
-        
-        {/* ── SECTION A: MINIMAL CENTERED HERO SECTION ── */}
-        <section className="hp-template-hero">
-          <div className="hp-badge-pill">
-            ⚖️ PLATFORM LOGS SECURED v2.0
+
+      {/* ── NAVBAR ── */}
+      <header className="hp-nav">
+        <div className="hp-nav-brand">
+          <span className="hp-nav-mark">⚖</span>
+          FairHire
+        </div>
+        <nav className="hp-nav-links">
+          {NAV_LINKS.map((l) => (
+            <span key={l.target} className="hp-nav-link" onClick={() => scrollTo(l.target)}>
+              {l.label}
+            </span>
+          ))}
+        </nav>
+        <div className="hp-nav-actions">
+          {isGuest ? (
+            <>
+              <button className="hp-nav-login" onClick={onStartApp}>Log in</button>
+              <button className="hp-nav-cta" onClick={onStartApp}>Start free audit</button>
+            </>
+          ) : (
+            <button className="hp-nav-cta" onClick={onStartApp}>Open workspace</button>
+          )}
+        </div>
+      </header>
+
+      {/* ── HERO ── */}
+      <section className="hp-hero">
+        <img
+          className="hp-hero-bg-image"
+          src="https://s3.ap-south-1.amazonaws.com/wp-media.yellowchalk.com/wp-content/uploads/2023/09/14092926/Frame-19-1024x512.png"
+          alt=""
+          aria-hidden="true"
+        />
+        <div className="hp-hero-blob" />
+
+        <div className="hp-hero-left">
+          <div className="hp-eyebrow">
+            <span className="hp-eyebrow-dot" />
+            Audit engine v2.0 — 10 bias modules live
           </div>
-          <div className="hp-hero-title-group">
-            <h1>
-              Audit Selection Logs for <span>Systemic Risk</span>
-            </h1>
-          </div>
-          <p className="hp-hero-description">
-            Securely map corporate recruitment pipelines to evaluate process outcomes, analyze conversion metrics against global frameworks, and protect institutional integrity.
+
+          <h1>
+            Find out where your <em>hiring pipeline</em> quietly breaks fair.
+          </h1>
+
+          <p className="hp-hero-desc">
+            Upload your recruitment data and FairHire scans every stage — screening,
+            interviews, offers — against gender, caste, disability and seven other
+            fairness frameworks. Get a scored report in minutes, not a quarterly audit.
           </p>
-          
-          <div className="hp-hero-input-bar">
-            <input 
-              type="text" 
-              placeholder="Enter compliance parameter or vector to scan..." 
-              disabled 
-              value="System Sandbox Workspace Environment Active"
-            />
-            <button className="hp-input-bar-btn" onClick={onStartApp}>
-              {isGuest ? '🚀 Open Workspace' : '📤 Ingest CSV'}
-            </button>
-          </div>
 
           <div className="hp-hero-actions">
-            <button 
-              className="hp-btn-outline-dark"
-              onClick={() => document.getElementById('compliance-console').scrollIntoView({ behavior: 'smooth' })}
-            >
-              View Active Benchmarks
+            <button className="hp-btn-primary" onClick={onStartApp}>
+              {isGuest ? 'Start free audit →' : 'Upload your CSV →'}
+            </button>
+            <button className="hp-btn-secondary" onClick={() => scrollTo('compliance-console')}>
+              See how it scans
             </button>
           </div>
-        </section>
 
-        {/* ── SECTION B: CORE SAFEGUARDS IN TEMPLATE CARD SCHEME ── */}
-        <section className="hp-section-wrapper">
-          <div className="hp-centered-title">
-            <h2>Core Safeguards</h2>
-            <p>Three architectural validation frames checking process pipeline configurations.</p>
+          <div className="hp-hero-proof">
+            <div className="hp-proof-avatars">
+              <div className="hp-proof-avatar">HR</div>
+              <div className="hp-proof-avatar">TA</div>
+              <div className="hp-proof-avatar">DEI</div>
+            </div>
+            <p className="hp-proof-text">
+              <strong>Built for</strong> HR, Talent Acquisition &amp; DEI teams running audits before reports go to leadership.
+            </p>
           </div>
-          <div className="hp-trio-layout">
-            
-            {/* BOX 1: Global Integrity Scale */}
-            <div className="hp-feature-node">
-              <div className="hp-icon-housing blue-badge">📊</div>
-              <h3>Global Integrity Scale</h3>
-              <p>Provides an enterprise 0–100 process score displaying structural pipeline health, with penalty deductions built-in for critical gate imbalances.</p>
+        </div>
+
+        <div className="hp-hero-right">
+          <div className="hp-float-chip c1">📄 Report ready in 6 min</div>
+          <div className="hp-float-chip c2">🔒 Data deleted after audit</div>
+
+          <div className="hp-scorecard">
+            <div className="hp-scorecard-head">
+              <span className="hp-scorecard-title">Fairness Scorecard</span>
+              <span className="hp-scorecard-live"><span className="hp-live-dot" />Live preview</span>
             </div>
 
-            {/* BOX 2: Framework Cross-Checks */}
-            <div className="hp-feature-node">
-              <div className="hp-icon-housing emerald-badge">🛡️</div>
-              <h3>Framework Cross-Checks</h3>
-              <p>Maintains runtime checking models mapping hiring steps against constitutional mandates, regional guidelines, and organizational safety metrics.</p>
+            <div className="hp-scorecard-body">
+              <div className="hp-score-ring">
+                <svg viewBox="0 0 100 100" width="108" height="108">
+                  <circle className="hp-score-ring-track" cx="50" cy="50" r={RADIUS} />
+                  <circle
+                    className="hp-score-ring-fill"
+                    cx="50" cy="50" r={RADIUS}
+                    strokeDasharray={CIRC}
+                    strokeDashoffset={offset}
+                  />
+                </svg>
+                <div className="hp-score-ring-num">
+                  <strong>{SCORE}</strong>
+                  <span>/ 100</span>
+                </div>
+              </div>
+              <div className="hp-score-summary">
+                <h4>Needs attention</h4>
+                <p>3 of 10 modules flagged a statistically significant gap this cycle.</p>
+              </div>
             </div>
 
-            {/* BOX 3: Anomaly Filter Layers */}
-            <div className="hp-feature-node">
-              <div className="hp-icon-housing purple-badge">🧹</div>
-              <h3>Anomaly Filter Layers</h3>
-              <p>Utilizes custom data sanitization filters to bypass temporary background anomalies, ensuring only genuine operational risks trip alert logs.</p>
+            <div className="hp-scorecard-rows">
+              <div className="hp-score-row">
+                <span className="hp-score-row-label">
+                  <span className="hp-row-icon flag">!</span> Gender pipeline parity
+                </span>
+                <span className="hp-score-row-status flag">Flagged</span>
+              </div>
+              <div className="hp-score-row">
+                <span className="hp-score-row-label">
+                  <span className="hp-row-icon ok">✓</span> Disability access parity
+                </span>
+                <span className="hp-score-row-status ok">Clear</span>
+              </div>
+              <div className="hp-score-row">
+                <span className="hp-score-row-label">
+                  <span className="hp-row-icon flag">!</span> Referral concentration
+                </span>
+                <span className="hp-score-row-status flag">Flagged</span>
+              </div>
             </div>
 
+            <div className="hp-scorecard-foot">
+              Sample output · run on <code>demo_pipeline.csv</code>
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── SECTION C: INTERACTIVE RISK CONSOLE ── */}
-        <section id="compliance-console" className="hp-glass-mainframe">
-          <div className="hp-centered-title" style={{ textAlign: 'left' }}>
-            <h2>Risk Parameter Console</h2>
-            <p>Select a monitoring vector to verify its underlying framework requirements, system tracking logic, and target indicators.</p>
+      {/* ── TRUST STRIP ── */}
+      <div className="hp-trust-strip">
+        <span className="hp-trust-label">Frameworks we check against</span>
+        <div className="hp-trust-logos">
+          <span>EEOC</span>
+          <span>ISO 30415</span>
+          <span>EU AI Act</span>
+          <span>Constitutional Equality Code</span>
+          <span>ILO C111</span>
+        </div>
+      </div>
+
+      {/* ── STATS BAND ── */}
+      <section className="hp-section hp-section-tight">
+        <div className="hp-stats-band">
+          <div className="hp-stats-glow" />
+          <div className="hp-stat-item">
+            <div className="hp-stat-num"><span>10</span></div>
+            <div className="hp-stat-label">Bias detection modules covering gender, caste, disability, age &amp; more</div>
+          </div>
+          <div className="hp-stat-item">
+            <div className="hp-stat-num">6<span>min</span></div>
+            <div className="hp-stat-label">Average time from CSV upload to a finished audit report</div>
+          </div>
+          <div className="hp-stat-item">
+            <div className="hp-stat-num">500<span>+</span></div>
+            <div className="hp-stat-label">Employee records per audit on the Starter plan, no setup needed</div>
+          </div>
+          <div className="hp-stat-item">
+            <div className="hp-stat-num"><span>0</span></div>
+            <div className="hp-stat-label">Raw applicant data retained after your report is generated</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SAFEGUARDS ── */}
+      <section className="hp-section" id="safeguards">
+        <div className="hp-section-head center">
+          <div className="hp-kicker" style={{ justifyContent: 'center' }}>Core safeguards</div>
+          <h2>Three checks run on every audit, automatically</h2>
+          <p>No configuration required — every upload runs through the full safeguard stack before you see a single chart.</p>
+        </div>
+
+        <div className="hp-features-grid">
+          <div className="hp-feature-card">
+            <div className="hp-feature-icon">📊</div>
+            <h3>One score, full context</h3>
+            <p>A single 0–100 fairness score gives leadership the headline number, while the breakdown underneath shows exactly which stage and group it came from.</p>
           </div>
 
-          <div className="hp-console-split">
+          <div className="hp-feature-card">
+            <div className="hp-feature-icon">🛡️</div>
+            <h3>Checked against real frameworks</h3>
+            <p>Every module maps to a named legal or regulatory standard — not a generic "bias score" — so findings hold up when you have to explain them.</p>
+          </div>
+
+          <div className="hp-feature-card">
+            <div className="hp-feature-icon">🧹</div>
+            <h3>Noise filtered before flagging</h3>
+            <p>Small sample sizes and seasonal hiring swings are filtered out automatically, so a flag in your report means a real, statistically sound gap.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── RISK CONSOLE ── */}
+      <section className="hp-section" id="compliance-console">
+        <div className="hp-console">
+          <div className="hp-section-head" style={{ marginBottom: 0 }}>
+            <div className="hp-kicker">Risk parameter console</div>
+            <h2>Pick a module, see exactly what it checks</h2>
+            <p>Every audit runs all ten by default. Click through them here to see the framework, the rule, and a sample flag before you ever upload a file.</p>
+          </div>
+
+          <div className="hp-console-grid">
             <div className="hp-console-menu">
-              {Object.keys(modulesData).map((key) => (
+              {Object.keys(MODULES_DATA).map((key) => (
                 <button
                   key={key}
                   className={`hp-console-item ${activeTab === key ? 'is-selected' : ''}`}
                   onClick={() => setActiveTab(key)}
                 >
-                  <span>{key === 'spg' ? 'multi-stage funnel' : key.replace('_', ' ')}</span>
-                  <span className="hp-console-arrow">➔</span>
+                  <span>{key === 'funnel' ? 'Multi-stage funnel' : key}</span>
+                  <span className="hp-console-arrow">→</span>
                 </button>
               ))}
             </div>
 
-            <div className="hp-view-surface">
-              <div className="hp-surface-group">
-                <h4>{currentModule.title}</h4>
-                <p className="hp-surface-body" style={{ fontWeight: 600, color: '#0f172a' }}>
-                  {currentModule.framework}
-                </p>
+            <div className="hp-console-view">
+              <div>
+                <p className="hp-console-view-label">Module</p>
+                <h4 className="hp-console-view-title">{currentModule.title}</h4>
+                <p className="hp-console-view-sub">{currentModule.framework}</p>
               </div>
 
-              <div className="hp-surface-group">
-                <h4>Platform Evaluation Parameter</h4>
-                <p className="hp-surface-body" style={{ color: '#475569', fontSize: '0.98rem' }}>{currentModule.rule}</p>
+              <div>
+                <p className="hp-console-view-label">What it checks</p>
+                <p className="hp-console-rule-text">{currentModule.rule}</p>
               </div>
 
-              <div className="hp-surface-group">
-                <h4>Simulated Warning Output Log</h4>
-                <div className="hp-log-banner">
-                  <span>⚠️</span>
-                  <div>{currentModule.flag}</div>
+              <div>
+                <p className="hp-console-view-label">Sample output</p>
+                <div className="hp-alert-banner">
+                  <span>{currentModule.status === 'flag' ? '⚠️' : '✅'}</span>
+                  <span>{currentModule.flag}</span>
                 </div>
               </div>
 
-              <div className="hp-surface-group">
-                <h4>Active Schema Keys</h4>
+              <div>
+                <p className="hp-console-view-label">Fields it reads</p>
                 <div className="hp-token-wrap">
                   {currentModule.vars.map((v, idx) => (
-                    <span key={idx} className="hp-token-node">{v}</span>
+                    <span key={idx} className="hp-token">{v}</span>
                   ))}
                 </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── SECTION D: BLUEPRINT LAYOUT DECK ── */}
-        <section className="hp-glass-mainframe" style={{ background: '#f8fafc' }}>
-          <div className="hp-centered-title" style={{ textAlign: 'left', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '1.65rem' }}>Infrastructure Matrix</h2>
-            <p>Decoupled processing layers handling dynamic validation pipelines securely.</p>
+      {/* ── DATA SPEC TABLE ── */}
+      <section className="hp-section" id="data-spec">
+        <div className="hp-section-head">
+          <div className="hp-kicker">Before you upload</div>
+          <h2>What your CSV needs to include</h2>
+          <p>Every audit reads all 10 fields below. Include them all in your CSV so each bias detection module has the data it needs to run.</p>
+        </div>
+
+        <div className="hp-spec-summary">
+          <div className="hp-spec-summary-stat">
+            <strong>10</strong>
+            <span>Required fields</span>
           </div>
-          <div className="hp-blueprint-deck">
-            
-            {/* NODE 1 */}
-            <div className="hp-blueprint-node" style={{ background: '#ffffff' }}>
-              <div className="hp-blueprint-img-frame">
-                <div style={{ width: '100%', height: '120px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="ti ti-filter" style={{ fontSize: '32px', color: '#94a3b8' }} />
-                </div>
-              </div>
-              <h4>Sanitization Core</h4>
-              <p>Optimized data processing tasks parsing tabular data arrays for record cleaning and field mapping.</p>
-            </div>
-
-            {/* NODE 2 */}
-            <div className="hp-blueprint-node" style={{ background: '#ffffff' }}>
-              <div className="hp-blueprint-img-frame">
-                <div style={{ width: '100%', height: '120px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="ti ti-api" style={{ fontSize: '32px', color: '#94a3b8' }} />
-                </div>
-              </div>
-              <h4>Secure Core API</h4>
-              <p>Asynchronous service network routing system validations while running isolated PDF documentation builders.</p>
-            </div>
-
-            {/* NODE 3 */}
-            <div className="hp-blueprint-node" style={{ background: '#ffffff' }}>
-              <div className="hp-blueprint-img-frame">
-                <div style={{ width: '100%', height: '120px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="ti ti-layout-dashboard" style={{ fontSize: '32px', color: '#94a3b8' }} />
-                </div>
-              </div>
-              <h4>Client Interface</h4>
-              <p>Lightweight single-page environment executing responsive layout updates and clean workspace states.</p>
-            </div>
-
-            {/* NODE 4 */}
-            <div className="hp-blueprint-node" style={{ background: '#ffffff' }}>
-              <div className="hp-blueprint-img-frame">
-                <div style={{ width: '100%', height: '120px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="ti ti-database" style={{ fontSize: '32px', color: '#94a3b8' }} />
-                </div>
-              </div>
-              <h4>Encrypted Ledger</h4>
-              <p>Relational storage layers deployed to record pattern updates and secure historical continuity logs cleanly.</p>
-            </div>
-
+          <div className="hp-spec-summary-divider" />
+          <div className="hp-spec-summary-stat">
+            <strong>10</strong>
+            <span>Modules unlocked</span>
           </div>
-        </section>
-
-        {/* ── SECTION E: MATURED SCHEMATIC GRID MATRIX ── */}
-        <section className="hp-section-wrapper">
-          <div className="hp-centered-title" style={{ textAlign: 'left' }}>
-            <h2>Production Data Ingestion Specifications</h2>
-            <p>Developer blueprint outlining header criteria requirements prior to running system pipeline scanning.</p>
+          <div className="hp-spec-summary-divider" />
+          <div className="hp-spec-summary-stat">
+            <strong>1</strong>
+            <span>CSV upload</span>
           </div>
-          <div className="hp-table-frame">
-            <table className="hp-schematic-grid">
-              <thead>
-                <tr>
-                  <th>Field Code</th>
-                  <th>Requirement Status</th>
-                  <th>Accepted Value Formats</th>
-                  <th>Operational Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>gender</strong></td>
-                  <td><span className="hp-badge-critical">Required Field</span></td>
-                  <td><span className="hp-code-inline">Male</span>, <span className="hp-code-inline">Female</span>, <span className="hp-code-inline">Non-binary</span></td>
-                  <td>Monitors foundational pipeline demographic distribution metrics across system gates.</td>
-                </tr>
-                <tr>
-                  <td><strong>shortlisted</strong></td>
-                  <td><span className="hp-badge-critical">Required Field</span></td>
-                  <td><span className="hp-code-inline">0</span> (No) or <span className="hp-code-inline">1</span> (Yes)</td>
-                  <td>Measures process conversion velocities post early-stage screening phases.</td>
-                </tr>
-                <tr>
-                  <td><strong>hired</strong></td>
-                  <td><span className="hp-badge-critical">Required Field</span></td>
-                  <td><span className="hp-code-inline">0</span> (No) or <span className="hp-code-inline">1</span> (Yes)</td>
-                  <td>Tracks total process conversion status relative to the original source distribution.</td>
-                </tr>
-                <tr>
-                  <td><strong>disability_status</strong></td>
-                  <td><span className="hp-badge-secondary">Optional Key</span></td>
-                  <td><span className="hp-code-inline">Yes</span>, <span className="hp-code-inline">No</span></td>
-                  <td>Supplies accessibility metrics tracking parameter equality across system software gates.</td>
-                </tr>
-                <tr>
-                  <td><span className="hp-code-inline">caste</span> or <span className="hp-code-inline">category</span> or <span className="hp-code-inline">social_group</span></td>
-                  <td><span className="hp-badge-secondary">Optional Key</span></td>
-                  <td>Alphanumeric system classification labels</td>
-                  <td>Checks pipeline alignment indices with respect to local statutory inclusion mandates.</td>
-                </tr>
-                <tr>
-                  <td><span className="hp-code-inline">skin_colour</span> or <span className="hp-code-inline">skin_tone</span></td>
-                  <td><span className="hp-badge-secondary">Optional Key</span></td>
-                  <td>Integers representing color balance sets</td>
-                  <td>Alerts system administrators to subtle cosmetic profile imbalances during interview loops.</td>
-                </tr>
-                <tr>
-                  <td><strong>referral</strong></td>
-                  <td><span className="hp-badge-secondary">Optional Key</span></td>
-                  <td>Source path identifiers (e.g., Agency, Internal)</td>
-                  <td>Guards channels from network isolation profiles and sourcing monopolization trends.</td>
-                </tr>
-                <tr>
-                  <td><strong>marital_status</strong></td>
-                  <td><span className="hp-badge-secondary">Optional Key</span></td>
-                  <td><span className="hp-code-inline">Single</span>, <span className="hp-code-inline">Married</span>, <span className="hp-code-inline">Divorced</span></td>
-                  <td>Triggers advanced intersectional filters to capture multi-layered processing drop-offs.</td>
-                </tr>
-                <tr>
-                  <td><strong>institution</strong></td>
-                  <td><span className="hp-badge-secondary">Optional Key</span></td>
-                  <td>Alphanumeric tags matching university keys</td>
-                  <td>Monitors institution concentration metrics to maintain open sourcing channels.</td>
-                </tr>
-                <tr>
-                  <td><strong>age / dob</strong></td>
-                  <td><span className="hp-badge-secondary">Optional Key</span></td>
-                  <td>Valid age integers or date structures</td>
-                  <td>Evaluates talent lifecycle trajectories to guarantee equity across all active generational blocks.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+        </div>
 
-        {/* ── SECTION F: PRICING CARDS ── */}
-        <section className="hp-pricing-section">
-          <div className="hp-pricing-header">
-            <h2>Simple, Transparent Pricing</h2>
-            <p>One-time audits or ongoing compliance monitoring — pick what fits your organisation.</p>
+        <div className="hp-table-frame">
+          <table className="hp-schema-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Column</th>
+                <th>Status</th>
+                <th>Accepted values</th>
+                <th>What it powers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span className="hp-row-index">01</span></td>
+                <td><strong>gender</strong></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td><span className="hp-code">Male</span>, <span className="hp-code">Female</span>, <span className="hp-code">Non-binary</span></td>
+                <td><p>Gender pipeline parity module</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">02</span></td>
+                <td><strong>shortlisted</strong></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td><span className="hp-code">0</span> (No) or <span className="hp-code">1</span> (Yes)</td>
+                <td><p>Conversion rate at the screening gate</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">03</span></td>
+                <td><strong>hired</strong></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td><span className="hp-code">0</span> (No) or <span className="hp-code">1</span> (Yes)</td>
+                <td><p>End-to-end conversion against the original applicant pool</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">04</span></td>
+                <td><strong>disability_status</strong></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td><span className="hp-code">Yes</span>, <span className="hp-code">No</span></td>
+                <td><p>Disability access parity module</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">05</span></td>
+                <td><span className="hp-code">caste</span> / <span className="hp-code">category</span> / <span className="hp-code">social_group</span></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td>Free-text category labels</td>
+                <td><p>Caste &amp; social category parity module</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">06</span></td>
+                <td><span className="hp-code">skin_colour</span> / <span className="hp-code">skin_tone</span></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td>Integer tone-scale values</td>
+                <td><p>Appearance bias scan</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">07</span></td>
+                <td><strong>referral</strong></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td>Source labels (e.g. Agency, Employee Referral)</td>
+                <td><p>Referral network guard</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">08</span></td>
+                <td><strong>marital_status</strong></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td><span className="hp-code">Single</span>, <span className="hp-code">Married</span>, <span className="hp-code">Divorced</span></td>
+                <td><p>Intersectional outcome scan</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">09</span></td>
+                <td><strong>institution</strong></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td>University or employer name</td>
+                <td><p>Sourcing concentration scan</p></td>
+              </tr>
+              <tr>
+                <td><span className="hp-row-index">10</span></td>
+                <td><strong>age</strong> / <strong>dob</strong></td>
+                <td><span className="hp-pill-required">Required</span></td>
+                <td>Integer age or date</td>
+                <td><p>Age demographics parity module</p></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section className="hp-section" id="pricing">
+        <div className="hp-section-head center">
+          <div className="hp-kicker" style={{ justifyContent: 'center' }}>Pricing</div>
+          <h2>Simple, transparent pricing</h2>
+          <p>Run a one-time audit before your next board review, or keep monitoring continuously. No hidden setup fees either way.</p>
+        </div>
+
+        <div className="hp-pricing-grid">
+
+          {/* STARTER */}
+          <div className="hp-price-card">
+            <div className="hp-plan-chip">📋 Starter</div>
+            <h3 className="hp-plan-name">Audit Report</h3>
+            <p className="hp-plan-sub">A single deep audit with a full PDF report you can hand straight to leadership.</p>
+
+            <div className="hp-price-block">
+              <span className="hp-price-currency">₹</span>
+              <span className="hp-price-amount">25K</span>
+            </div>
+            <p className="hp-price-unit">per audit</p>
+            <p className="hp-capacity-note">Up to 500 employees</p>
+
+            <div className="hp-price-divider" />
+
+            <ul className="hp-feature-list">
+              <li><span className="hp-feat-tick">✓</span>All 10 bias detection modules</li>
+              <li><span className="hp-feat-tick">✓</span>Full PDF audit report</li>
+              <li><span className="hp-feat-tick">✓</span>Gender, caste, disability, appearance</li>
+              <li><span className="hp-feat-tick">✓</span>Referral &amp; institution analysis</li>
+              <li><span className="hp-feat-tick">✓</span>Flag-level remediation notes</li>
+            </ul>
+
+            <button className="hp-price-cta" onClick={onStartApp}>Start free audit</button>
           </div>
 
-          <div className="hp-pricing-grid">
+          {/* PROFESSIONAL */}
+          <div className="hp-price-card featured">
+            <div className="hp-popular-tag">Most popular</div>
+            <div className="hp-plan-chip">🏢 Professional</div>
+            <h3 className="hp-plan-name">Monthly Plan</h3>
+            <p className="hp-plan-sub">Continuous monitoring with trend tracking and full data exports.</p>
 
-            {/* ── STARTER: Per-Audit ── */}
-            <div className="hp-price-card starter">
-              <div className="hp-plan-badge">📋 Starter</div>
-              <h3 className="hp-plan-name">Audit Report</h3>
-              <p className="hp-plan-sub">Single-run deep audit with a full PDF compliance report.</p>
-
-              <div className="hp-price-block">
-                <span className="hp-price-currency">₹</span>
-                <span className="hp-price-amount">25K</span>
-              </div>
-              <p className="hp-price-unit">per audit / roll</p>
-              <p className="hp-capacity-note">Up to 500 employees</p>
-
-              <div className="hp-price-divider" />
-
-              <ul className="hp-feature-list">
-                <li><span className="hp-feat-icon">✓</span>10+ bias detection modules</li>
-                <li><span className="hp-feat-icon">✓</span>Full PDF audit report</li>
-                <li><span className="hp-feat-icon">✓</span>Gender, caste, disability, skin tone</li>
-                <li><span className="hp-feat-icon">✓</span>Referral &amp; institution analysis</li>
-                <li><span className="hp-feat-icon">✓</span>Flag-level remediation notes</li>
-              </ul>
-
-              <button className="hp-price-cta" onClick={onStartApp}>
-                Start Free Audit →
-              </button>
+            <div className="hp-price-block">
+              <span className="hp-price-currency">₹</span>
+              <span className="hp-price-amount">68K</span>
             </div>
+            <p className="hp-price-unit">per month</p>
+            <p className="hp-capacity-note">Up to 5,000 employees</p>
 
-            {/* ── PROFESSIONAL: Monthly ── */}
-            <div className="hp-price-card professional">
-              <div className="hp-popular-chip">Most Popular</div>
-              <div className="hp-plan-badge">🏢 Professional</div>
-              <h3 className="hp-plan-name">Monthly Plan</h3>
-              <p className="hp-plan-sub">Continuous compliance monitoring with full data exports.</p>
+            <div className="hp-price-divider" />
 
-              <div className="hp-price-block">
-                <span className="hp-price-currency">₹</span>
-                <span className="hp-price-amount">68K</span>
-              </div>
-              <p className="hp-price-unit">per month</p>
-              <p className="hp-capacity-note">Up to 5,000 employees</p>
+            <ul className="hp-feature-list">
+              <li><span className="hp-feat-tick">✓</span>Everything in Starter</li>
+              <li><span className="hp-feat-tick">✓</span>Unlimited monthly audits</li>
+              <li><span className="hp-feat-tick">✓</span>JSON data export included</li>
+              <li><span className="hp-feat-tick">✓</span>Trend tracking over time</li>
+              <li><span className="hp-feat-tick">✓</span>Priority support &amp; SLA</li>
+              <li><span className="hp-feat-tick">✓</span>Multi-role team access</li>
+            </ul>
 
-              <div className="hp-price-divider" />
-
-              <ul className="hp-feature-list">
-                <li><span className="hp-feat-icon">✓</span>Everything in Starter</li>
-                <li><span className="hp-feat-icon">✓</span>Unlimited monthly audits</li>
-                <li><span className="hp-feat-icon">✓</span>JSON data export included</li>
-                <li><span className="hp-feat-icon">✓</span>Trend tracking over time</li>
-                <li><span className="hp-feat-icon">✓</span>Priority support &amp; SLA</li>
-                <li><span className="hp-feat-icon">✓</span>Multi-role team access</li>
-              </ul>
-
-              <button className="hp-price-cta" onClick={onStartApp}>
-                Get Monthly Access →
-              </button>
-            </div>
-
-            {/* ── ENTERPRISE: API (Coming Soon) ── */}
-            <div className="hp-price-card enterprise">
-              <div className="hp-coming-soon-ribbon">Coming Soon</div>
-              <div className="hp-plan-badge">⚡ Enterprise</div>
-              <h3 className="hp-plan-name">API Access</h3>
-              <p className="hp-plan-sub">Programmatic integration for custom pipelines and internal tooling.</p>
-
-              <div className="hp-price-block">
-                <span className="hp-price-currency">₹</span>
-                <span className="hp-price-amount">1.5L</span>
-              </div>
-              <p className="hp-price-unit">per month</p>
-              <p className="hp-capacity-note">1M token context window</p>
-
-              <div className="hp-price-divider" />
-
-              <ul className="hp-feature-list">
-                <li><span className="hp-feat-icon">✓</span>Everything in Professional</li>
-                <li><span className="hp-feat-icon">✓</span>Dedicated API keys</li>
-                <li><span className="hp-feat-icon">✓</span>1M token processing limit</li>
-                <li><span className="hp-feat-icon">✓</span>Webhook &amp; HRMS integration</li>
-                <li><span className="hp-feat-icon">✓</span>Custom module configuration</li>
-                <li><span className="hp-feat-icon">✓</span>Dedicated account manager</li>
-              </ul>
-
-              <button className="hp-price-cta" disabled>
-                Notify Me on Launch
-              </button>
-            </div>
-
+            <button className="hp-price-cta" onClick={onStartApp}>Get monthly access</button>
           </div>
-        </section>
 
-      </div>
+          {/* ENTERPRISE */}
+          <div className="hp-price-card">
+            <div className="hp-soon-tag">Coming soon</div>
+            <div className="hp-plan-chip">⚡ Enterprise</div>
+            <h3 className="hp-plan-name">API Access</h3>
+            <p className="hp-plan-sub">Programmatic access for custom pipelines and internal HR tooling.</p>
+
+            <div className="hp-price-block">
+              <span className="hp-price-currency">₹</span>
+              <span className="hp-price-amount">1.5L</span>
+            </div>
+            <p className="hp-price-unit">per month</p>
+            <p className="hp-capacity-note">1M token context window</p>
+
+            <div className="hp-price-divider" />
+
+            <ul className="hp-feature-list">
+              <li><span className="hp-feat-tick">✓</span>Everything in Professional</li>
+              <li><span className="hp-feat-tick">✓</span>Dedicated API keys</li>
+              <li><span className="hp-feat-tick">✓</span>Webhook &amp; HRMS integration</li>
+              <li><span className="hp-feat-tick">✓</span>Custom module configuration</li>
+              <li><span className="hp-feat-tick">✓</span>Dedicated account manager</li>
+            </ul>
+
+            <button className="hp-price-cta" disabled>Notify me on launch</button>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── CLOSING CTA ── */}
+      <section className="hp-cta-band">
+        <div className="hp-cta-inner">
+          <h2>Run your first audit before your next leadership review</h2>
+          <p>Upload a CSV, get a scored report in minutes — no setup, no commitment.</p>
+          <button className="hp-btn-primary" onClick={onStartApp}>
+            {isGuest ? 'Start free audit →' : 'Open workspace →'}
+          </button>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="hp-footer">
+        <div className="hp-footer-top">
+          <div>
+            <div className="hp-footer-brand">
+              <span className="hp-nav-mark">⚖</span>
+              FairHire
+            </div>
+            <p className="hp-footer-about">
+              FairHire audits recruitment pipelines for bias across gender, caste, disability,
+              age and more — so fairness gaps surface before they become legal or reputational risk.
+            </p>
+          </div>
+
+          <div className="hp-footer-col">
+            <h5>Product</h5>
+            <ul>
+              <li><a onClick={() => scrollTo('safeguards')}>Safeguards</a></li>
+              <li><a onClick={() => scrollTo('compliance-console')}>Risk console</a></li>
+              <li><a onClick={() => scrollTo('data-spec')}>Data spec</a></li>
+              <li><a onClick={() => scrollTo('pricing')}>Pricing</a></li>
+            </ul>
+          </div>
+
+          <div className="hp-footer-col">
+            <h5>Frameworks</h5>
+            <ul>
+              <li><a>EEOC</a></li>
+              <li><a>ISO 30415</a></li>
+              <li><a>EU AI Act</a></li>
+              <li><a>ILO C111</a></li>
+            </ul>
+          </div>
+
+          <div className="hp-footer-col">
+            <h5>Company</h5>
+            <ul>
+              <li><a onClick={onStartApp}>Log in</a></li>
+              <li><a onClick={onStartApp}>Start an audit</a></li>
+              <li><a>Contact</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="hp-footer-bottom">
+          <span>© {new Date().getFullYear()} FairHire. All rights reserved.</span>
+          <div className="hp-footer-bottom-links">
+            <a>Privacy</a>
+            <a>Terms</a>
+            <a>Security</a>
+          </div>
+        </div>
+      </footer>
+
     </div>
   )
 }
