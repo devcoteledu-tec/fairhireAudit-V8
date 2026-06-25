@@ -1,5 +1,5 @@
 /**
- * authUtils.js — FairHire v2.1 auth helpers
+ * authUtils.js — FairHire v2.1 auth helpers (FIXED VERSION)
  *
  * Auth is now fully cookie-based (HttpOnly fh_access + fh_refresh).
  * No token is ever stored in localStorage or readable by JS.
@@ -12,10 +12,29 @@ const _BASE = import.meta.env.VITE_API_URL || ''
 const LOGIN_PATH = '/'
 
 export function getCsrfToken() {
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith('fh_csrf='))
-    ?.split('=')[1] ?? ''
+  try {
+    const allCookies = document.cookie
+    console.log('[CSRF] All cookies:', allCookies)
+    
+    const csrfCookie = allCookies
+      .split('; ')
+      .find(row => row.startsWith('fh_csrf='))
+    
+    console.log('[CSRF] Found cookie:', csrfCookie)
+    
+    if (!csrfCookie) {
+      console.warn('[CSRF] fh_csrf cookie not found')
+      return ''
+    }
+    
+    const token = csrfCookie.split('=')[1]
+    console.log('[CSRF] Extracted token:', token ? token.substring(0, 20) + '...' : 'EMPTY')
+    
+    return token || ''
+  } catch (err) {
+    console.error('[CSRF] Error extracting token:', err)
+    return ''
+  }
 }
 
 /**
@@ -29,47 +48,63 @@ export function getCsrfToken() {
 export async function authFetch(url, options = {}) {
   const method = (options.method || 'GET').toUpperCase()
   const needsCsrf = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)
+  
+  const csrfToken = needsCsrf ? getCsrfToken() : ''
+  
+  console.log(`[AUTH] ${method} ${url}`)
+  console.log(`[AUTH] Need CSRF: ${needsCsrf}, Token present: ${!!csrfToken}`)
+  
   const opts = {
     ...options,
     credentials: 'include',
     headers: {
       ...(options.headers || {}),
-      ...(needsCsrf ? { 'X-CSRF-Token': getCsrfToken() } : {}),
+      ...(needsCsrf && csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
     },
   }
+  
+  console.log('[AUTH] Request headers:', opts.headers)
 
   let res = await fetch(url, opts)
+  
+  console.log(`[AUTH] Response status: ${res.status}`)
 
   if (res.status !== 401) return res
 
   // Attempt a silent token refresh
   try {
-    const csrfToken = document.cookie
-      .split('; ')
-      .find(r => r.startsWith('fh_csrf='))
-      ?.split('=')[1] ?? ''
+    console.log('[AUTH] Got 401, attempting refresh...')
+    const csrfTokenForRefresh = getCsrfToken()
     const refreshRes = await fetch(`${_BASE}/api/refresh`, {
       method: 'POST',
       credentials: 'include',
-      headers: { 'X-CSRF-Token': csrfToken },
+      headers: { 'X-CSRF-Token': csrfTokenForRefresh },
     })
+
+    console.log(`[AUTH] Refresh response: ${refreshRes.status}`)
 
     if (!refreshRes.ok) {
       // Refresh token is expired/invalid — send user to login
+      console.log('[AUTH] Refresh failed, redirecting to login')
       window.location.href = LOGIN_PATH
       // Return a synthetic 401 so callers don't hang
       return new Response(JSON.stringify({ detail: 'Session expired' }), { status: 401 })
     }
-  } catch {
+  } catch (err) {
+    console.error('[AUTH] Refresh error:', err)
     window.location.href = LOGIN_PATH
     return new Response(JSON.stringify({ detail: 'Session expired' }), { status: 401 })
   }
 
   // Retry the original request with the fresh access cookie
+  console.log('[AUTH] Retrying original request...')
   res = await fetch(url, opts)
+
+  console.log(`[AUTH] Retry response: ${res.status}`)
 
   if (res.status === 401) {
     // Still 401 after refresh — give up and redirect
+    console.log('[AUTH] Still 401 after refresh, redirecting to login')
     window.location.href = LOGIN_PATH
   }
 
