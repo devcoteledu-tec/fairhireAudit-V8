@@ -347,13 +347,19 @@ limiter = Limiter(key_func=_jwt_sub_or_ip)
 
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "")
 _origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
-_allow_credentials = bool(_origins)
+
+# FIX-AUTH-4: ALWAYS allow credentials when using cookie-based auth
+# Even if _origins is empty, we should support CORS with credentials
+_allow_credentials = True  # Changed from: bool(_origins)
+
 if not _origins:
     logger.warning(
         "ALLOWED_ORIGINS is not set — CORS is open to all origins. "
         "This is acceptable only in local development."
     )
     _origins = ["*"]
+else:
+    logger.info(f"CORS configured for origins: {_origins}")
 
 app = FastAPI(
     title="FairHire Audit API",
@@ -502,14 +508,24 @@ def get_current_user(
 
     FIX-1: user_id is always derived from the validated token, never from
     an unauthenticated request body or query parameter.
+    
+    FIX-AUTH-6: Explicitly prefer fh_access cookie over bearer token
     """
-    token = fh_access or bearer_token
+    # CRITICAL FIX: Prefer cookie over bearer token
+    token = fh_access if fh_access else bearer_token
+    
+    logger.debug(f"get_current_user: fh_access={'yes' if fh_access else 'no'}, bearer={'yes' if bearer_token else 'no'}, using={'cookie' if fh_access else 'bearer'}")
+    
     if not token:
+        logger.warning("No auth token found in cookie or Authorization header")
         raise _err(401, "Not authenticated")
+    
     try:
         payload = jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM])
         user_id = int(payload["sub"])
-    except (JWTError, KeyError, ValueError):
+        logger.debug(f"Token decoded successfully: user_id={user_id}")
+    except (JWTError, KeyError, ValueError) as e:
+        logger.warning(f"Token validation failed: {e}")
         raise _err(401, "Invalid or expired token")
 
     user = get_user_by_id(user_id)
@@ -1261,6 +1277,15 @@ def login(request: Request, req: AuthRequest, response: Response) -> dict:
 
     # AUTH-1 — set dual HttpOnly cookies
     _set_auth_cookies(response, user["id"], email)
+    
+    # FIX-AUTH-4: Explicitly set CORS headers for cookie credentials
+    origin = request.headers.get("origin", "")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRF-Token"
+    
     logger.info("LOGIN success: %s", email)
     return {"status": "ok", "email": email}
 
@@ -1349,12 +1374,15 @@ def refresh_token(
             raise JWTError("wrong token type")
         user_id = int(payload["sub"])
         email   = payload["email"]
-    except (JWTError, KeyError, ValueError):
+        logger.debug(f"Refresh token valid for user {user_id}")
+    except (JWTError, KeyError, ValueError) as e:
+        logger.warning(f"Refresh token invalid: {e}")
         _clear_auth_cookies(response)
         raise _err(401, "Refresh token expired or invalid")
 
     user = get_user_by_id(user_id)
     if not user:
+        logger.warning(f"User {user_id} not found during refresh")
         _clear_auth_cookies(response)
         raise _err(401, "User not found")
 
@@ -1368,6 +1396,13 @@ def refresh_token(
     )
     response.set_cookie("fh_access", access, max_age=_ACCESS_TOKEN_MINS * 60, **_kw)
     _issue_csrf_cookie(response)   # rotate CSRF token on every token refresh
+    
+    # FIX-AUTH-4: Explicitly set CORS headers for cookie credentials
+    origin = request.headers.get("origin", "")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    
     logger.info("REFRESH issued new access token for user %s", user_id)
     return {"status": "ok"}
 
@@ -1383,8 +1418,17 @@ def logout_endpoint(request: Request, response: Response) -> dict:
 
 @app.get("/api/me")
 @limiter.limit("60/minute")
-def me(request: Request, current_user: dict = Depends(get_current_user)) -> dict:
+def me(request: Request, current_user: dict = Depends(get_current_user), response: Response = None) -> dict:
     """AUTH-7 — Return basic user info if the access cookie is valid; 401 otherwise."""
+    logger.debug(f"GET /api/me for user {current_user.get('id')}")
+    
+    # FIX-AUTH-4: Ensure CORS headers are set for cookie credentials
+    if response:
+        origin = request.headers.get("origin", "")
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+    
     return {
         "id":           current_user["id"],
         "email":        current_user["email"],
