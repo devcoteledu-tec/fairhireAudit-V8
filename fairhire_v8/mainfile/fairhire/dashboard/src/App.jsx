@@ -9,7 +9,7 @@ import HistoryPage from './components/HistoryPage'
 import HomePage from './components/HomePage'
 import VerifyEmailPage from './components/VerifyEmailPage'
 import ResetPasswordPage from './components/ResetPasswordPage'
-import { authFetch, logout, isLoggedIn } from './components/authUtils'
+import { authFetch, logout, isLoggedIn, setCsrfToken } from './components/authUtils'
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -196,6 +196,7 @@ export default function App() {
   }
 
   const handleLogin = (u) => {
+    if (u.csrf_token) setCsrfToken(u.csrf_token)
     setUser(u)
     setShowAuth(false)
     // Fetch full user info from /api/me to populate id + company_name
