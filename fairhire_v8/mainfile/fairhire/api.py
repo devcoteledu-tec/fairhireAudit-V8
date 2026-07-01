@@ -406,8 +406,8 @@ def _create_refresh_token(user_id: int, email: str) -> str:
     return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALGORITHM)
 
 
-def _set_auth_cookies(response: Response, user_id: int, email: str) -> None:
-    """Write fh_access, fh_refresh, and fh_csrf cookies."""
+def _set_auth_cookies(response: Response, user_id: int, email: str) -> str:
+    """Write fh_access, fh_refresh, and fh_csrf cookies. Returns the CSRF token."""
     access  = _create_access_token(user_id, email)
     refresh = _create_refresh_token(user_id, email)
     _kw = dict(
@@ -419,7 +419,7 @@ def _set_auth_cookies(response: Response, user_id: int, email: str) -> None:
     )
     response.set_cookie("fh_access",  access,  max_age=_ACCESS_TOKEN_MINS * 60,      **_kw)
     response.set_cookie("fh_refresh", refresh, max_age=_REFRESH_TOKEN_DAYS * 86400,  **_kw)
-    _issue_csrf_cookie(response)   # CSRF — readable by JS, validated on every state-mutating call
+    return _issue_csrf_cookie(response)
 
 
 def _clear_auth_cookies(response: Response) -> None:
@@ -1275,8 +1275,11 @@ def login(request: Request, req: AuthRequest, response: Response) -> dict:
             detail={"error": "Please verify your email before signing in.", "code": 403},
         )
 
-    # AUTH-1 — set dual HttpOnly cookies
-    _set_auth_cookies(response, user["id"], email)
+    # AUTH-1 — set dual HttpOnly cookies; capture CSRF token to return in body.
+    # FIX-CSRF-1: cross-origin deployments (Vercel + Render) cannot share cookies
+    # via document.cookie, so we return the CSRF token in the response body and
+    # the frontend stores it in React state (memory), not localStorage.
+    csrf_token = _set_auth_cookies(response, user["id"], email)
     
     # FIX-AUTH-4: Explicitly set CORS headers for cookie credentials
     origin = request.headers.get("origin", "")
@@ -1287,7 +1290,7 @@ def login(request: Request, req: AuthRequest, response: Response) -> dict:
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRF-Token"
     
     logger.info("LOGIN success: %s", email)
-    return {"status": "ok", "email": email}
+    return {"status": "ok", "email": email, "csrf_token": csrf_token}
 
 
 @app.get("/api/verify-email")
