@@ -34,7 +34,7 @@ export default function AuthPage({ apiBase, onLogin, onBack }) {
       }
 
       const loginData = await r.json()
-      onLogin({ email: loginData.email || email })
+      onLogin({ email: loginData.email || email, csrf_token: loginData.csrf_token })
     } catch (err) {
       setError(err.message)
     } finally {
